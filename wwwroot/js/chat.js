@@ -25,19 +25,49 @@ function connect() {
     });
 }
 
-function putMessage(usr, msg, isFromServer) {
-    var messages = document.getElementById('messagesListFodaseSouRuimComNomes');
-
+function createMessageNode() {
     var newMsg = document.createElement('li');
     newMsg.classList.add('.msg-li-item');
+
+    return newMsg;
+}
+
+function putMessage(node) {
+    var messages = document.getElementById('messagesListFodaseSouRuimComNomes');
+
+    messages.appendChild(node);
+    document.getElementsByClassName('chat')[0].scrollTop = document.getElementsByClassName('chat')[0].scrollHeight;
+}
+
+function userMessage(usr, msg) {
+    var newMsg = createMessageNode();
     newMsg.innerHTML = "[" + usr + "]: " + msg;
 
-    if (isFromServer) {
-        newMsg.style.color = "red";
-    }
+    putMessage(newMsg);
+}
 
-    messages.appendChild(newMsg);
-    document.getElementsByClassName('chat')[0].scrollTop = document.getElementsByClassName('chat')[0].scrollHeight;
+function serverMessage(msg) {
+    var newMsg = createMessageNode();
+    newMsg.innerHTML = "[" + "Vigia" + "]: " + msg;
+
+    newMsg.style.color = "red";
+    putMessage(newMsg);
+}
+
+function cmdMessage(msg) {
+    var newMsg = createMessageNode();
+    newMsg.innerHTML = "[" + "CMD" + "]: " + msg;
+
+    newMsg.style.color = "blue";
+    putMessage(newMsg);
+}
+
+function privateMessage(usr, msg) {
+    var newMsg = createMessageNode();
+    newMsg.innerHTML = "[" + usr + "] ==> " + msg; 
+
+    newMsg.style.color = "green";
+    putMessage(newMsg);
 }
 
 function sendMessage(event) {
@@ -52,20 +82,21 @@ function sendMessage(event) {
 
 function stopConnection() {
     document.getElementById('username').disabled = false;
+    document.getElementById('username').value = "";
     document.getElementById('btnConnect').disabled = false;
 
     connection.stop();
 }
 
 // When something happens
-connection.on("NewUserEntered", function(usr) { putMessage("Vigia", "Novo usuário entrou -->" + usr, true);  });
-connection.on("ReceiveMsg", putMessage);
-connection.on("UserDisconnected", function(usr) { putMessage("Vigia", "USUÁRIO DESCONECTADO --> " + usr, true); });
+connection.on("NewUserEntered", function(usr) { serverMessage("NOVO USUÁRIO CONECTADO ==> " + usr);  });
+connection.on("ReceiveMsg", userMessage);
+connection.on("UserDisconnected", function(usr) { serverMessage("USUÁRIO DESCONECTADO ==> " + usr); });
 
 // Commands Area
 connection.on("CmdOnlineRequest", function(users) { 
     for(var i = 0; i < users.length; i++) {
-        putMessage("Vigia", "USUÁRIO ONLINE: " + users[i], true);
+        cmdMessage("USUÁRIO ONLINE: " + users[i]);
     }
 });
 
@@ -80,7 +111,7 @@ connection.on("CmdBanRequest", function(usr) {
 });
 
 connection.on("BanResponse", function() { 
-    putMessage("Vigia", "Você foi expulso! Seu trouxa!", true); 
+    serverMessage("Você foi expulso! Seu trouxa!"); 
     stopConnection(); 
 });
 
@@ -89,10 +120,10 @@ connection.on("SomeoneBanned", function(usr) {
 })
 
 connection.on("CmdHelpRequest", function() {
-    putMessage("Vigia", "/help para ver todos os comandos.", true);
-    putMessage("Vigia", "/online para ver os usuários online.", true);
-    putMessage("Vigia", "/clear para limpar seu chat.", true);
-    putMessage("Vigia", "/ban para expulsar um usuário (função administratitva).", true);
+    cmdMessage("/help para ver todos os comandos.");
+    cmdMessage("/online para ver os usuários online.");
+    cmdMessage("/clear para limpar seu chat.");
+    cmdMessage("/ban para expulsar um usuário (função administratitva).");
 });
 
 // Errors or not-allowed-something
