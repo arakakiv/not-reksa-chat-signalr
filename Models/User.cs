@@ -4,11 +4,18 @@ namespace AskerChat.Models
 {
     public class User
     {
-        public string Name { get; }
+        public string Name { get; set; }
+
         public HubCallerContext ContextCaller { get; }
 
         public User(string n, HubCallerContext context) {
             Name = n.Trim();
+            
+            while(Name.Contains("  "))
+            {
+                Name = Name.Replace("  ", " ");
+            }
+
             ContextCaller = context;
         }
 
@@ -19,9 +26,8 @@ namespace AskerChat.Models
 
         private bool ValidName()
         {
-            // Trying to protect from XSS or empty nam 
-
-            if (Name.ToUpper() == "VIGIA" || String.IsNullOrEmpty(Name.Trim()) ||  Name.Contains("<") || Name.Contains(">"))
+            // Protect from XSS or empty name
+            if (Name.ToUpper() == "VIGIA" || String.IsNullOrEmpty(Name) ||  (Name.Contains("<") && Name.Contains(">")) || Name.Contains("</"))
             {
                 return false;
             }

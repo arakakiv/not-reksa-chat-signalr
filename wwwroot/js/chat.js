@@ -10,8 +10,8 @@ function enterTextArea(event) {
 }
 
 function connect() {
-    if (document.getElementById('username') == "") {
-        alert('nome invalido pfv nao tente xss!! vai funcionar e vai bagunçar td!!');
+    if (document.getElementById('username').value == "") {
+        alert('Nome inválido.');
         return;
     }
 
@@ -25,15 +25,18 @@ function connect() {
     });
 }
 
-function putMessage(usr, msg) {
+function putMessage(usr, msg, isFromServer) {
     var messages = document.getElementById('messagesListFodaseSouRuimComNomes');
 
     var newMsg = document.createElement('li');
     newMsg.classList.add('.msg-li-item');
     newMsg.innerHTML = "[" + usr + "]: " + msg;
 
-    messages.appendChild(newMsg);
+    if (isFromServer) {
+        newMsg.style.color = "red";
+    }
 
+    messages.appendChild(newMsg);
     document.getElementsByClassName('chat')[0].scrollTop = document.getElementsByClassName('chat')[0].scrollHeight;
 }
 
@@ -55,14 +58,14 @@ function stopConnection() {
 }
 
 // When something happens
-connection.on("NewUserEntered", function(usr) { putMessage("Vigia", "Novo usuário entrou: " + usr); });
+connection.on("NewUserEntered", function(usr) { putMessage("Vigia", "Novo usuário entrou -->" + usr, true);  });
 connection.on("ReceiveMsg", putMessage);
-connection.on("UserDisconnected", function(usr) { putMessage("Vigia", "USUÁRIO DESCONECTADO ou EXPULSO: " + usr); });
+connection.on("UserDisconnected", function(usr) { putMessage("Vigia", "USUÁRIO DESCONECTADO --> " + usr, true); });
 
 // Commands Area
 connection.on("CmdOnlineRequest", function(users) { 
     for(var i = 0; i < users.length; i++) {
-        putMessage("Vigia", "USUÁRIO ONLINE: " + users[i]);
+        putMessage("Vigia", "USUÁRIO ONLINE: " + users[i], true);
     }
 });
 
@@ -72,12 +75,28 @@ connection.on("CmdClearRequest", function() {
 });
 
 connection.on("CmdBanRequest", function(usr) {
-    var psswd = prompt("qual é a senha seu merda??? ");
+    var psswd = prompt("pswd: ");
     connection.invoke("BanResponse", usr, psswd);
 });
 
-connection.on("BanResponse", function() { alert("Você foi expulso! Seu trouxa!"); stopConnection(); });
+connection.on("BanResponse", function() { 
+    putMessage("Vigia", "Você foi expulso! Seu trouxa!", true); 
+    stopConnection(); 
+});
 
-// Errors or not-allowed-somethin
+connection.on("SomeoneBanned", function(usr) { 
+    putMessage("Vigia", "O usuário " + usr + " foi expulso!", true);
+})
+
+connection.on("CmdHelpRequest", function() {
+    putMessage("Vigia", "/help para ver todos os comandos.", true);
+    putMessage("Vigia", "/online para ver os usuários online.", true);
+    putMessage("Vigia", "/clear para limpar seu chat.", true);
+    putMessage("Vigia", "/ban para expulsar um usuário (função administratitva).", true);
+});
+
+// Errors or not-allowed-something
 connection.on("AlreadyOnline", function() { alert("Já existe um usuário com o mesmo nome que você online!"); stopConnection();});
-connection.on("NotAuthorized", function() { alert("nao autorizando otaro!"); });
+connection.on("NotAllowedName", function() { alert("Nome não permitido."); stopConnection(); });
+connection.on("NotAuthorized", function() { alert("Não autorizado!"); });
+connection.on("UserNotFounded", function(usr) { alert("Usuário não encontrado: " + usr); });

@@ -21,28 +21,21 @@ namespace AskerChat.Hubs
             /* Logical Tests */
 
             // Not allowing two users with the same name, sorry =)
-            if (Users.Online.Any(x => x.Name == usr)) {
+            if (Users.Online.Any(x => x.Name == FormatName(usr))) {
                 Clients.Caller.SendAsync("AlreadyOnline");
                 return;
             }
 
             User u = new User(usr, Context);
+            
             if (u.IsValid()) 
             {
                 Users.Online.Add(u);
-                Clients.All.SendAsync("NewUserEntered", usr);
+                Clients.All.SendAsync("NewUserEntered", u.Name);
             }
             else {
                 Clients.Caller.SendAsync("NotAllowedName");
             }  
-        }
-
-        public override Task OnDisconnectedAsync(Exception exception)
-        {
-            User u = Users.Online.Find(x => x.ContextCaller.ConnectionId == Context.ConnectionId);
-            Users.Online.Remove(u);
-
-            return Clients.All.SendAsync("UserDisconnected", u.Name);
         }
 
         public async Task SendMessage(string usr, string msg)
@@ -57,7 +50,7 @@ namespace AskerChat.Hubs
             // equals to the finded User, 'user'. BUT, our application is made in that way:
             // When the user connects to the chat, the input for name isn't enable.
             // This makes hard to send a msg, so we create a variable named 'user' with the input value,
-            // and send requests in function of this values.
+            // and send requests in function of this value.
 
             // But the value, by devTools can be changed. So, we don't make sure if the value was or not
             // changed.
@@ -68,15 +61,14 @@ namespace AskerChat.Hubs
 
             // 2. But maybe, our caller user is trying to pass as someone that is online.
             // Then, we need to make sure if the caller's Context equals to the 'someone' context.
-            // * Als0, remember that we have sure the 'usr' is online, because we tested before.
+            // * Als0, remember that we have sure the 'usr' is online, because we tested it before.
 
             /* If 'usr' is not online, do nothing */
-            if (!Users.Online.Any(x => x.Name == usr)) {
+            if (!Users.Online.Any(x => x.Name == FormatName(usr))) {
                 return; 
             }
             else {
-
-                user = Users.Online.Find(x => x.Name == usr);
+                user = Users.Online.Find(x => x.Name == FormatName(usr));
                 m = new Message(user, msg);
             }
 
@@ -90,13 +82,23 @@ namespace AskerChat.Hubs
                 {
                     if (m.IsCommand())
                     {
-                        if (m.Command == Message.Commands.OnlineRequest) {
-                            var names = from u in Users.Online select u.Name;
-                            await Clients.Caller.SendAsync("Cmd" + m.Command.ToString(), names.ToArray());
-                        }
-                        else {
-                            await Clients.Caller.SendAsync("Cmd" + m.Command.ToString(), msg.Replace("/ban ", "").Trim());
-                        }    
+                        var command = "Cmd" + m.Command.ToString();
+
+                        switch(m.Command) {
+                            case Message.Commands.OnlineRequest:
+                                var names = from u in Users.Online select u.Name;
+                                await Clients.Caller.SendAsync(command, names.ToArray());
+                                break;
+                            case Message.Commands.ClearRequest:
+                                await Clients.Caller.SendAsync(command);
+                                break;
+                            case Message.Commands.BanRequest:
+                                await Clients.Caller.SendAsync(command, msg.Replace("/ban ", "").Trim());
+                                break;
+                            case Message.Commands.HelpRequest:
+                                await Clients.Caller.SendAsync(command);
+                                break;
+                        }   
                     }
                     else
                     {
@@ -106,15 +108,46 @@ namespace AskerChat.Hubs
             }
         }
 
+        public override Task OnDisconnectedAsync(Exception exception)
+        {
+            User u = Users.Online.Find(x => x.ContextCaller.ConnectionId == Context.ConnectionId);
+
+            if (u is null) {
+                return new Task(() => { });
+            }
+
+            Users.Online.Remove(u);
+            return Clients.All.SendAsync("UserDisconnected", u.Name);;
+        }
+
         public async Task BanResponse(string usr, string psswd)
         {
             /* If and only if the psswd passed is that we want */
             if (psswd == "!..364a5") {
-                await Clients.Client(Users.Online.Find(x => x.Name == usr.Trim()).ContextCaller.ConnectionId).SendAsync("BanResponse");
+                User toBan = Users.Online.Find(x => x.Name == FormatName(usr));
+
+                if (toBan is null) {
+                    await Clients.Caller.SendAsync("UserNotFounded", FormatName(usr));
+                    return;
+                }
+
+                await Clients.Client(toBan.ContextCaller.ConnectionId).SendAsync("BanResponse");
+                await Clients.All.SendAsync("SomeoneBanned", FormatName(usr));
             }
             else {
                 await Clients.Caller.SendAsync("NotAuthorized");
             }
+        }
+
+        public string FormatName(string n)
+        {
+            n = n.Trim();
+            while(n.Contains("  "))
+            {
+                n = n.Replace("  ", " ");
+            }
+
+            return n;
         }
     }
 }

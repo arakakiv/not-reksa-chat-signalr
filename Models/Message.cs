@@ -8,27 +8,28 @@ namespace AskerChat.Models
         {
             OnlineRequest,
             ClearRequest,
-            BanRequest
+            BanRequest,
+            HelpRequest
         }
 
         public User User { get; }
 
         public string Text { get; }
+
         public Commands? Command { get; private set; }
 
         public Message(User u, string txt)
         {
-            // Hello!
-            
             User = u;
-            Text = txt;
+            Text = txt.Trim();
 
             SetCommand();
         }
 
         public bool IsValid()
         {
-            if (Text.Contains("<") || Text.Contains(">") || Text.Trim() == "")
+            // Protect from XSS or empty msg
+            if ((Text.Contains("<") && Text.Contains(">")) || Text.Contains("/>") || Text.Trim() == "")
             {
                 return false;
             }
@@ -43,14 +44,17 @@ namespace AskerChat.Models
 
         private void SetCommand()
         {
-            if (Text.Trim() == "/online") {
+            if (Text == "/online") {
                 Command = Commands.OnlineRequest;
             }
-            else if (Text.Trim() == "/clear") {
+            else if (Text == "/clear") {
                 Command = Commands.ClearRequest;
             }
-            else if (Text.Trim().Contains("/ban ")) {                
+            else if (Text.Contains("/ban ")) {                
                 Command = Commands.BanRequest;
+            }
+            else if (Text == "/help") {
+                Command = Commands.HelpRequest;
             }
             else {
                 Command = null;
