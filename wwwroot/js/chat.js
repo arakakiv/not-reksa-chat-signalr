@@ -22,7 +22,8 @@ function connect() {
 
     connection.start().then(function() {
         connection.invoke("NewUserEntered", user);
-    });
+        cmdMessage("Bem vindo(a)! Use /help para ver todos os comandos!");
+    }).catch(function() { return; });
 }
 
 function createMessageNode() {
@@ -62,9 +63,15 @@ function cmdMessage(msg) {
     putMessage(newMsg);
 }
 
-function privateMessage(usr, msg) {
+function privateMessage(usr, msg, isReceiving) {
     var newMsg = createMessageNode();
-    newMsg.innerHTML = "[" + usr + "] ==> " + msg; 
+
+    if (isReceiving) {
+        newMsg.innerHTML = "[by: " + usr + "] ==> " + msg; 
+    }
+    else {
+        newMsg.innerHTML = "[to: " + usr + "] ==> " + msg; 
+    }
 
     newMsg.style.color = "green";
     putMessage(newMsg);
@@ -92,6 +99,7 @@ function stopConnection() {
 connection.on("NewUserEntered", function(usr) { serverMessage("NOVO USUÁRIO CONECTADO ==> " + usr);  });
 connection.on("ReceiveMsg", userMessage);
 connection.on("UserDisconnected", function(usr) { serverMessage("USUÁRIO DESCONECTADO ==> " + usr); });
+connection.on("ReceivePrivateMsg", privateMessage);
 
 // Commands Area
 connection.on("CmdOnlineRequest", function(users) { 
@@ -116,14 +124,15 @@ connection.on("BanResponse", function() {
 });
 
 connection.on("SomeoneBanned", function(usr) { 
-    putMessage("Vigia", "O usuário " + usr + " foi expulso!", true);
+    serverMessage("O USUÁRIO " + usr + " FOI EXPULSO!");
 })
 
 connection.on("CmdHelpRequest", function() {
     cmdMessage("/help para ver todos os comandos.");
     cmdMessage("/online para ver os usuários online.");
     cmdMessage("/clear para limpar seu chat.");
-    cmdMessage("/ban para expulsar um usuário (função administratitva).");
+    cmdMessage("/ban 'user entre aspas simples!' para expulsar um usuário (função administratitva).");
+    cmdMessage("/msg user 'mensagem entre aspas simples!'");
 });
 
 // Errors or not-allowed-something
@@ -131,3 +140,4 @@ connection.on("AlreadyOnline", function() { alert("Já existe um usuário com o 
 connection.on("NotAllowedName", function() { alert("Nome não permitido."); stopConnection(); });
 connection.on("NotAuthorized", function() { alert("Não autorizado!"); });
 connection.on("UserNotFounded", function(usr) { alert("Usuário não encontrado: " + usr); });
+connection.on("CouldNotUnderstand", function() { alert("Não pude entender o que você quer."); });

@@ -9,7 +9,8 @@ namespace AskerChat.Models
             OnlineRequest,
             ClearRequest,
             BanRequest,
-            HelpRequest
+            HelpRequest,
+            PrivateMessageRequest
         }
 
         public User User { get; }
@@ -55,6 +56,9 @@ namespace AskerChat.Models
             }
             else if (Text == "/help") {
                 Command = Commands.HelpRequest;
+            }
+            else if (Text.Contains("/msg ")) {
+                Command = Commands.PrivateMessageRequest;
             }
             else {
                 Command = null;
