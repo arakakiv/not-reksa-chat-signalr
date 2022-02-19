@@ -1,6 +1,7 @@
 "use strict";
 
 var connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
+
 var user = "";
 
 function enterTextArea(event) {
@@ -20,8 +21,10 @@ function connect() {
     document.getElementById('username').disabled = true;
     document.getElementById('btnConnect').disabled = true;
 
+    document.getElementById('admPass').disabled = true;
+
     connection.start().then(function() {
-        connection.invoke("NewUserEntered", user);
+        connection.invoke("NewUserEntered", user, document.getElementById('admPass').value);
         cmdMessage("Bem vindo(a)! Use /help para ver todos os comandos!");
     }).catch(function() { return; });
 }
@@ -91,6 +94,9 @@ function stopConnection() {
     document.getElementById('username').disabled = false;
     document.getElementById('username').value = "";
     document.getElementById('btnConnect').disabled = false;
+    
+    document.getElementById('admPass').disabled = false;
+    document.getElementById('admPass').value = "";
 
     connection.stop();
 }
@@ -114,8 +120,7 @@ connection.on("CmdClearRequest", function() {
 });
 
 connection.on("CmdBanRequest", function(usr) {
-    var psswd = prompt("pswd: ");
-    connection.invoke("BanResponse", usr, psswd);
+    connection.invoke("BanResponse", usr);
 });
 
 connection.on("BanResponse", function() { 

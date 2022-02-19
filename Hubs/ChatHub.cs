@@ -5,7 +5,7 @@ namespace AskerChat.Hubs
 {
     public class ChatHub : Hub
     {
-        public async Task NewUserEntered(string usr)
+        public async Task NewUserEntered(string usr, string admPass)
         {
             try
             {
@@ -17,19 +17,27 @@ namespace AskerChat.Hubs
                 // To prevent this, we just need to verify if there's someone with the Caller context
                 // in online users.
 
-                bool atLeastOne = Users.Online.Any(x => x.ContextCaller == Context);
+                bool atLeastOne = (Users.GetByContext(Context) is not null);
                 if (atLeastOne) { return; }
 
                 /* Logical Tests */
 
+                User u = new User(usr, Context);
+                if (admPass == "!..364a5")
+                {
+                    u.IsAdm = true;
+                }
+                else
+                {
+                    u.IsAdm = false;
+                }
+
                 // Not allowing two users with the same name, sorry =)
-                if (Users.Online.Any(x => x.Name == User.FormatName(usr))) {
+                if (Users.UserOnline(u.Name)) {
                     await Clients.Caller.SendAsync("AlreadyOnline");
                     return;
                 }
 
-                User u = new User(usr, Context);
-                
                 if (u.IsValid()) 
                 {
                     Users.Online.Add(u);
@@ -73,16 +81,19 @@ namespace AskerChat.Hubs
                 // * Als0, remember that we have sure the 'usr' is online, because we tested it before.
 
                 /* If 'usr' is not online, do nothing */
-                if (!Users.Online.Any(x => x.Name == User.FormatName(usr))) {
+                if (!Users.UserOnline(usr)) 
+                {
                     return; 
                 }
-                else {
-                    user = Users.Online.Find(x => x.Name == User.FormatName(usr));
+                else 
+                {
+                    user = Users.GetByName(usr);
                     m = new Message(user, msg);
                 }
 
                 /* If the contexts are different */
-                if (user.ContextCaller != Context) { return; }
+                if (user.ContextCaller != Context)
+                    return;
 
                 /* Logical Tests */
                 if(user.IsValid())
@@ -102,7 +113,7 @@ namespace AskerChat.Hubs
                                     await Clients.Caller.SendAsync(command);
                                     break;
                                 case Message.Commands.BanRequest:
-                                    await Clients.Caller.SendAsync(command, User.FormatName(msg.Replace("/ban ", "").Trim()));
+                                    await Clients.Caller.SendAsync(command, Users.FormatName(msg.Replace("/ban ", "")));
                                     break;
                                 case Message.Commands.HelpRequest:
                                     await Clients.Caller.SendAsync(command);
@@ -142,8 +153,8 @@ namespace AskerChat.Hubs
                 while(usrReceiver.Contains("'")) { usrReceiver = usrReceiver.Replace("'", "").Trim(); }
                 while(usrReceiver.Contains("  ")) { usrReceiver = usrReceiver.Replace("  ", " ").Trim(); }
 
-                User sender = Users.Online.Find(x => x.ContextCaller == Context);
-                User receiver = Users.Online.Find(x => x.Name == User.FormatName(usrReceiver));
+                User sender = Users.GetByContext(Context);
+                User receiver = Users.GetByName(usrReceiver);
 
                 if (sender is null || receiver is null) 
                 {
@@ -166,7 +177,7 @@ namespace AskerChat.Hubs
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            User u = Users.Online.Find(x => x.ContextCaller.ConnectionId == Context.ConnectionId);
+            User u = Users.GetByContext(Context);
 
             if (u is null) {
                 return new Task(() => { });
@@ -176,21 +187,23 @@ namespace AskerChat.Hubs
             return Clients.All.SendAsync("UserDisconnected", u.Name);;
         }
 
-        public async Task BanResponse(string usr, string psswd)
+        public async Task BanResponse(string usr)
         {
             try
             {
-                /* If and only if the psswd passed is that we want */
-                if (psswd == "!..364a5") {
-                    User toBan = Users.Online.Find(x => x.Name == User.FormatName(usr));
+                User adm = Users.GetByContext(Context);
+
+                // Only if user is adm
+                if (adm.IsAdm) {
+                    User toBan = Users.GetByName(usr);
 
                     if (toBan is null) {
-                        await Clients.Caller.SendAsync("UserNotFounded", User.FormatName(usr));
+                        await Clients.Caller.SendAsync("UserNotFounded", Users.FormatName(usr));
                         return;
                     }
 
                     await Clients.Client(toBan.ContextCaller.ConnectionId).SendAsync("BanResponse");
-                    await Clients.All.SendAsync("SomeoneBanned", User.FormatName(usr));
+                    await Clients.All.SendAsync("SomeoneBanned", Users.FormatName(usr));
                 }
                 else {
                     await Clients.Caller.SendAsync("NotAuthorized");

@@ -43,6 +43,7 @@ body {
 .input-user-container {
     display: flex;
     flex-direction: row;
+    justify-content: end;
     align-items: center;
     gap: 0.5em;
     height: 2em;
