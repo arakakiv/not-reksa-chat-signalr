@@ -1,7 +1,7 @@
-using AskerChat.Models;
+using NotReksaChat.Models;
 using Microsoft.AspNetCore.SignalR;
 
-namespace AskerChat.Hubs
+namespace NotReksaChat.Hubs
 {
     public class ChatHub : Hub
     {

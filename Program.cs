@@ -1,4 +1,4 @@
-using AskerChat.Hubs;
+using NotReksaChat.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();

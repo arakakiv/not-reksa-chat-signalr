@@ -37,7 +37,7 @@ function createMessageNode() {
 }
 
 function putMessage(node) {
-    var messages = document.getElementById('messagesListFodaseSouRuimComNomes');
+    var messages = document.getElementById('msgList');
 
     messages.appendChild(node);
     document.getElementsByClassName('chat')[0].scrollTop = document.getElementsByClassName('chat')[0].scrollHeight;
@@ -115,7 +115,7 @@ connection.on("CmdOnlineRequest", function(users) {
 });
 
 connection.on("CmdClearRequest", function() {
-    var messages = document.getElementById('messagesListFodaseSouRuimComNomes');
+    var messages = document.getElementById('msgList');
     messages.innerHTML = '';
 });
 

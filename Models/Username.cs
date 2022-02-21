@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace AskerChat.Models
+namespace NotReksaChat.Models
 {
     public class Username
     {
