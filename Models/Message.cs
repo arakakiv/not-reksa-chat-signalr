@@ -10,7 +10,9 @@ namespace NotReksaChat.Models
             ClearRequest,
             BanRequest,
             HelpRequest,
-            PrivateMessageRequest
+            PrivateMessageRequest,
+            MuteRequest,
+            UnmuteRequest
         }
 
         public User User { get; }
@@ -45,24 +47,39 @@ namespace NotReksaChat.Models
 
         private void SetCommand()
         {
-            if (Text == "/online") {
+            if (HitsCommand("/online")) {
                 Command = Commands.OnlineRequest;
             }
-            else if (Text == "/clear") {
+            else if (HitsCommand("/clear")) {
                 Command = Commands.ClearRequest;
             }
-            else if (Text.Contains("/ban ")) {                
+            else if (HitsCommand("/ban ")) {                
                 Command = Commands.BanRequest;
             }
-            else if (Text == "/help") {
+            else if (HitsCommand("/help")) {
                 Command = Commands.HelpRequest;
             }
-            else if (Text.Contains("/msg ")) {
+            else if (HitsCommand("/msg ")) {
                 Command = Commands.PrivateMessageRequest;
+            }
+            else if (HitsCommand("/mute ")) {
+                Command = Commands.MuteRequest;
+            }
+            else if (HitsCommand("/unmute ")) {
+                Command = Commands.UnmuteRequest;
             }
             else {
                 Command = null;
             }
+        }
+
+        private bool HitsCommand(string whichCmd)
+        {
+            // Index and length must refer to a location within the string. (Parameter 'length')
+            if (whichCmd.Length > Text.Length)
+                return false;
+
+            return Text.Substring(0, whichCmd.Length) == whichCmd;
         }
     }
 }

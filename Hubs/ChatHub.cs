@@ -1,3 +1,10 @@
+using System.Net.Sockets;
+using System.Threading.Tasks.Sources;
+using System.Diagnostics;
+using System.Diagnostics.Tracing;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Threading;
 using NotReksaChat.Models;
 using Microsoft.AspNetCore.SignalR;
 
@@ -23,7 +30,7 @@ namespace NotReksaChat.Hubs
                 /* Logical Tests */
 
                 User u = new User(usr, Context);
-                if (admPass == "!..364a5")
+                if (admPass == "lolo!!09")
                 {
                     u.IsAdm = true;
                 }
@@ -88,18 +95,27 @@ namespace NotReksaChat.Hubs
                 else 
                 {
                     user = Users.GetByName(usr);
-                    m = new Message(user, msg);
+                    m = new Message(user, msg.ToString());
                 }
 
                 /* If the contexts are different */
                 if (user.ContextCaller != Context)
                     return;
-
+                
                 /* Logical Tests */
                 if(user.IsValid())
                 {
                     if (m.IsValid())
-                    {
+                    {       
+                        if (user.LastMsg == default(DateTime))
+                            Users.Online[Users.Online.IndexOf(user)].LastMsg = DateTime.MinValue;
+
+                        if (user.LastMsg > DateTime.Now.AddMilliseconds(-1000)) 
+                        {
+                            await Clients.Caller.SendAsync("SpamAlert");
+                            return;
+                        }
+
                         if (m.IsCommand())
                         {
                             var command = "Cmd" + m.Command.ToString();
@@ -119,24 +135,49 @@ namespace NotReksaChat.Hubs
                                     await Clients.Caller.SendAsync(command);
                                     break;
                                 case Message.Commands.PrivateMessageRequest:
-                                    await PrivateMessageRequest(user.Name, m.Text, Context);
+                                    await PrivateMessageRequest(m.Text, Context);
+                                    break;
+                                case Message.Commands.MuteRequest:
+                                    if (await MuteRequest(user, m.Text))
+                                        await Clients.Caller.SendAsync(command);
+
+                                    break;
+                                case Message.Commands.UnmuteRequest:
+                                    if (await UnmuteRequest(user, m.Text))
+                                        await Clients.Caller.SendAsync(command);
+                                   
                                     break;
                             }   
                         }
                         else
                         {
-                            await Clients.All.SendAsync("ReceiveMsg", user.Name, m.Text);
+                            Users.Online[Users.Online.IndexOf(user)].LastMsg = DateTime.Now;
+
+                            var notSendToTheseUsers = from u in Users.Online 
+                                                      where u.Muted.Contains(user) 
+                                                      select u.ContextCaller.ConnectionId;
+
+                            await Clients.AllExcept(notSendToTheseUsers).SendAsync("ReceiveMsg", user.Name, m.Text);
                         }
                     }
                 }
             }
-            catch
+            catch (Exception e)
             {
                 await Clients.Caller.SendAsync("CouldNotUnderstand");
+                
+                foreach(var x in e.Data)
+                {
+                    Console.WriteLine(e.Data[x]);
+                    Console.WriteLine(x);
+                }
+
+                Console.WriteLine(e.InnerException);
+                Console.WriteLine(e.Message);
             }
         }
 
-        public async Task PrivateMessageRequest(string usrSender, string cmd, HubCallerContext context)
+        public async Task PrivateMessageRequest(string cmd, HubCallerContext context)
         {
             try 
             {
@@ -172,6 +213,71 @@ namespace NotReksaChat.Hubs
             catch 
             {
                 await Clients.Client(Context.ConnectionId).SendAsync("CouldNotUnderstand");
+            }
+        }
+
+        public async Task<bool> MuteRequest(User u, string cmd)
+        {
+            try
+            {
+                string userToMute = userToMute = cmd.Substring(cmd.IndexOf("'", 0) + 1, cmd.Length - cmd.IndexOf("'", 0) - 2);
+
+                User toMute = Users.GetByName(userToMute);
+                if (toMute != u)
+                {
+                    if (toMute is null)
+                    {
+                        await Clients.Caller.SendAsync("UserNotFounded", toMute.Name);
+                    }
+                    else
+                    {
+                        // If already muted, then do nothing!
+                        if (!u.Muted.Contains(toMute))
+                        {
+                            Users.Online[Users.Online.IndexOf(u)].Muted.Add(toMute);
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+            catch
+            {
+                await Clients.Caller.SendAsync("CouldNotUnderstand");
+                return false;
+            }
+        }
+
+        public async Task<bool> UnmuteRequest(User u, string cmd)
+        {
+            try
+            {
+                string userToUnmute = cmd.Substring(cmd.IndexOf("'", 0) + 1, cmd.Length - cmd.IndexOf("'", 0) - 2);
+
+                User toUnmute = Users.GetByName(userToUnmute);
+                if (toUnmute != u)
+                {
+                    if (toUnmute is null)
+                    {
+                        await Clients.Caller.SendAsync("UserNotFounded", toUnmute.Name);
+                    }
+                    else
+                    {
+                        if (u.Muted.Contains(toUnmute))
+                        {
+                            Users.Online[Users.Online.IndexOf(u)].Muted.Remove(toUnmute);
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+            catch
+            {
+                await Clients.Caller.SendAsync("CouldNotUnderstand");
+                return false;
             }
         }
 

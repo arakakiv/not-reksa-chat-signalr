@@ -83,7 +83,7 @@ function privateMessage(usr, msg, isReceiving) {
 function sendMessage(event) {
     var message = document.getElementById('msgValue').value;
 
-    connection.invoke("SendMessage", user, message).catch(function() { alert("acho q vc está desconctado troxa"); });
+    connection.invoke("SendMessage", user, message + '').catch(function() { alert("acho q vc está desconctado troxa"); });
 
     document.getElementById('msgValue').value = "";
 
@@ -130,7 +130,7 @@ connection.on("BanResponse", function() {
 
 connection.on("SomeoneBanned", function(usr) { 
     serverMessage("O USUÁRIO " + usr + " FOI EXPULSO!");
-})
+});
 
 connection.on("CmdHelpRequest", function() {
     cmdMessage("/help para ver todos os comandos.");
@@ -138,6 +138,16 @@ connection.on("CmdHelpRequest", function() {
     cmdMessage("/clear para limpar seu chat.");
     cmdMessage("/ban 'user entre aspas simples!' para expulsar um usuário (função administratitva).");
     cmdMessage("/msg user 'mensagem entre aspas simples!'");
+    cmdMessage("/mute 'user entre aspas simples!' para silenciar um usuário.");
+    cmdMessage("/unmute 'user entre aspas simples!' para desmutar um usuário já mutado.")
+});
+
+connection.on("CmdMuteRequest", function() { 
+    serverMessage("Usuário mutado para você =)"); 
+});
+
+connection.on("CmdUnmuteRequest", function() {
+    serverMessage("Usuário desmutado para você =)");
 });
 
 // Errors or not-allowed-something
@@ -146,3 +156,4 @@ connection.on("NotAllowedName", function() { alert("Nome não permitido."); stop
 connection.on("NotAuthorized", function() { alert("Não autorizado!"); });
 connection.on("UserNotFounded", function(usr) { alert("Usuário não encontrado: " + usr); });
 connection.on("CouldNotUnderstand", function() { alert("Não pude entender o que você quer."); });
+connection.on("SpamAlert", function() { serverMessage("Espere um pouquinho! Coisa de 1 segundo!"); });

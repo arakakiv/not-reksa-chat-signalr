@@ -13,12 +13,15 @@ namespace NotReksaChat.Models
         }
         
         public bool IsAdm { get; set; }
+        public DateTime LastMsg { get; set; }
+        public List<User> Muted { get; set; }
 
         public HubCallerContext ContextCaller { get; }
 
         public User(string n, HubCallerContext context) {
             Username = new Username(n);
             ContextCaller = context;
+            Muted = new List<User>();
         }
 
         public bool IsValid()

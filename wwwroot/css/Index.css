@@ -10,7 +10,7 @@
 }
 
 body {
-    font-size: 25px;
+    font-size: 20px;
     color: white;
     
     background-image: linear-gradient(to right, #000000, #220b18, #380f2f, #48154f, #4b2377, #473290, #3842aa, #0052c4, #005fce, #006cd8, #0078e2, #0085eb);
@@ -132,6 +132,10 @@ button:active {
 }
 
 @media only screen and (min-width: 768px) {
+    body {
+        font-size: 30px;
+    }
+
     .main {
         flex-direction: row;
         justify-content: center;
