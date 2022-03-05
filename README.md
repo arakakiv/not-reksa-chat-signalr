@@ -1,5 +1,5 @@
 # Chat feito com SignalR e Razor Pages (Server) e JavaScript (Client).
-Acesse o webapp em: https://not-reksa-chat.herokuapp.com/
+Acesse o webapp em: https://signalr-chat-arakakiv.herokuapp.com/
 
 ## Comandos:
 - **/help**: lista todos os comandos.
