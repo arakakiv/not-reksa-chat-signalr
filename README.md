@@ -11,6 +11,6 @@ Acesse o webapp em: https://signalr-chat-arakakiv.herokuapp.com/
 - **/unmute 'user'**: desmuta um usuário que já estava mutado anteriormente para quem solicita o comando.
 
 ## Importante
-O aplicativo também valida os dados de entrada, principalmente server side. Dentre algumas validações, existem a verificação de **XSS** *(Cross Site Scripting)*, buscando barrar a presença de tags html ou a execução de códigos javascript e também a possibilidade de, pelo console **DevTools** de cada browser, executar novas conexões e invocar comandos do server side.
+O aplicativo também valida os dados de entrada, principalmente server side. Dentre algumas no backend validações, existem a verificação de **XSS** *(Cross Site Scripting)*, buscando barrar a presença de tags html ou a execução de códigos javascript e também a possibilidade de, pelo console **DevTools** de cada browser, executar novas conexões e invocar comandos do server side.
 
 Agora, um intervalo de um segundo deve ser seguido para mandar uma mensagem, prevenindo muito flood.
