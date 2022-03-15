@@ -1,0 +1,59 @@
+@using NotReksaChat.Models
+@section Styles {
+    <link rel="stylesheet" href="~/css/Index.css">
+}
+
+@section Scripts {
+    <script src="~/js/darkTheme.js"></script>
+    
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/chat.js"></script>
+}
+
+<div class="main">
+    <div class="main-left col-5">
+        <div class="main-header shadow">
+            <h1>NOT REKSA CHAT</h1>
+            <p>Já que você não socializa na vida real, socialize aqui!</p>
+
+            <div class="connectionOptions">
+                <div class="connectionOption">
+                    <label>Nome:</label>
+                    <input id="inputName" type="text" placeholder="Ex: Vigia">
+                </div>
+
+                <div class="connectionOption">
+                    <label>Alertas do Vigia:</label>
+                    <input id="vigiaAlerts" type="checkbox">
+                </div>
+
+                <div class="connectionOption">
+                    <label>"Não quero machucar meus olhos":</label>
+                    <input type="checkbox" id="darkThemeCheck" onchange="changeTheme()">
+                </div>
+
+                <button class="connectButton" onclick="connect()">Conectar!</button>
+            </div>
+        </div>
+
+        <div class="onlineUsers shadow">
+            <h2>Online</h2>
+
+            <div class="onlineUsersItems" id="onlineUsersList">
+            </div>
+        </div>
+    </div>
+
+    <div class="main-right col-7">
+        <div class="chat shadow">
+            <h2>MENSAGENS</h2>
+            <ul class="msgItems" id="msgList"></ul>
+        </div>
+
+        <div class="sendMsgArea">
+            <textarea onkeydown="enterTextArea(event)" placeholder="Meu nome é Vigia e vou te floodar hahaha!" maxlength="300" id="inputMsg" class="col-8"></textarea>
+            <button id="btnSendMsg" class="btnSendMsg col-3" onclick="sendMsg(event)">Enviar!</button>
+            <button class="btnClearChat col-1" onclick="clearChat()">Limpar Chat</button>
+        </div>
+    </div>
+</div>

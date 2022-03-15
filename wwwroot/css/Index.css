@@ -1,0 +1,205 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    padding: 1em;
+
+    align-items: center;
+    color: black;
+}
+
+.main-left {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    height: 100%;
+}
+
+.main-header {
+    text-align: center;
+    padding: 1em;
+
+    border-radius: 5px;
+
+    background-color: rgba(255, 255, 255, 0.9);
+    border: solid 10px rgb(40, 40, 40);
+}
+
+.connectionOptions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    margin-top: 20px;
+}
+
+.connectionOption {
+    text-align: left;
+}
+
+#inputName {
+    padding: 5px; 
+    font-size: 0.8em;
+    width: 75%; 
+    border: solid 3px; 
+    border-radius: 5px;
+}
+
+/* Classe .connectButton */
+
+.connectButton {
+    width: 100%;
+    margin-top: 15px;
+    align-self: center;
+
+    padding: 20px;
+    
+    border: solid 3px black;
+    border-radius: 5px;
+
+    background-color: white;
+
+    font-size: 1em;
+}
+
+.connectButton:active {
+    background-color: rgb(225, 225, 225);
+}
+
+/* onlineUsers */
+
+.onlineUsers {
+    border-radius: 5px;
+
+    text-align: center;
+    padding: 1em;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-size: 1.2em;
+
+    max-height: 30vh;
+    overflow-y: auto;
+
+    margin-top: 10px;
+}
+
+.onlineUsersItems {
+    margin-top: 10px;
+    text-align: left;
+
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.onlineUser {
+    display: flex;
+    justify-content: space-between;
+
+    align-items: center;
+}
+
+/* . muteButton */
+
+.muteButton {
+    width: 20%;
+    height: 60px;
+
+    background-color: rgb(255, 123, 178);
+    
+    border: solid 3px black;
+    border-radius: 5px;
+
+    font-size: 0.6em;
+}
+
+.muteButton:active {
+    background-color: rgb(255, 85, 156);
+}
+
+/* chat */
+
+.main-right {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chat {
+    padding: 1em;
+    text-align: center;
+
+    background-color: rgba(255, 255, 255, 0.9);
+
+    font-size: 1.1em;
+    height: 80vh;
+
+    border: solid 5px black;
+    border-radius: 5px;
+
+    overflow-y: auto;
+}
+
+.msgItems {
+    text-align: left;
+    list-style-type: none;
+}
+
+.msgItems > li {
+    margin-bottom: 5px;
+}
+
+.sendMsgArea {
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+
+    gap: 2px;
+}
+
+.sendMsgArea > textarea {
+    height: 10vh;
+    padding: 10px;
+
+    border: 5px solid black;
+
+    font-size: 0.8em;
+    resize: none;
+}
+
+.sendMsgArea > button {
+    border: 5px solid black;
+    border-radius: 5px;
+
+    background-color: white;
+
+    font-size: 0.8em;
+
+    height: 10vh;
+}
+
+.sendMsgArea > button:active {
+    background-color: rgb(225, 225, 225);
+}
+
+/* Shadow */
+
+.shadow {
+    box-shadow: 2px 4px 10px 0px rgba(0, 0, 0, 0.8);
+}
+
+@media only screen and (min-width: 768px) {
+    .main {
+        flex-direction: row;
+    }
+
+    .onlineUsers {
+        max-height:40vh;
+    }
+
+    .sendMsgArea {
+        flex-direction: row;
+        height: auto;
+    }
+}
