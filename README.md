@@ -18,3 +18,4 @@ Além disso, proteções **server side** contra possíveis penetrações **XSS**
 
 ## Obrigado!
 **Fique à vontade para ler e utilizar o código!**.
+![](/more/rurouni-gif.gif)  
