@@ -16,6 +16,8 @@ até mesmo desabilitar os "alertas" do "Vigia". O webapp também se adequa de bo
 
 Além disso, proteções **server side** contra possíveis penetrações **XSS** e a utilização do **devTools** do browser de forma maliciosa são feitas. 
 
+E mais: é possível banir um usuário por IP. Para isso, é necessário que se use um comando e uma senha dada!
+
 ## Obrigado!
 **Fique à vontade para ler e utilizar o código!**.
 
