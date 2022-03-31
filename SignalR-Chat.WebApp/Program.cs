@@ -4,7 +4,9 @@ using NotReksaChat.Services;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMvc();
 builder.Services.AddSignalR();
-builder.Services.AddTransient<Online>();
+
+builder.Services.AddSingleton<IOnline, Online>();
+builder.Services.AddSingleton<IBanned, Banned>();
 
 var app = builder.Build();
 

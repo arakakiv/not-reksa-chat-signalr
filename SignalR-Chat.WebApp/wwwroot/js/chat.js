@@ -11,7 +11,7 @@ function connect() {
 }
 
 function sendMsg(event) {
-    connection.invoke("SendMsg", user, document.getElementById('inputMsg').value).catch(function() { alert("vc deve estar desconectado troxa"); });
+    connection.invoke("SendMsg", user, document.getElementById('inputMsg').value).catch(function() { alert("Atenção: Você deve estar desconectado!"); });
     document.getElementById('inputMsg').value = '';
     event.preventDefault();
 }

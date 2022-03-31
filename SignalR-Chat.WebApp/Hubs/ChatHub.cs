@@ -8,10 +8,12 @@ namespace NotReksaChat.Hubs
 {
     public class ChatHub : Hub
     {
-        public Online Online { get; }
-        public ChatHub(Online online)
+        public IOnline Online { get; }
+        public IBanned Banned { get; }
+        public ChatHub(IOnline online, IBanned banned)
         {
             Online = online;
+            Banned = banned;
         }
 
         public string GetIp(HubCallerContext cont)
@@ -22,9 +24,9 @@ namespace NotReksaChat.Hubs
 
         public async Task NewUserEntered(string user)
         {
-            if (Online.banned.Contains(GetIp(Context)))
+            if (Banned.Get(GetIp(Context)) is not null)
             {
-                await Clients.Caller.SendAsync("MessageFromUser", user, "alert('lixo'); ");
+                await Clients.Caller.SendAsync("MessageFromUser", user, "alert('Você está banido por IP.'); ");
                 return;
             }
 
@@ -127,12 +129,12 @@ namespace NotReksaChat.Hubs
 
         public async Task FuncAmig(string psswd, string usr)
         {
-            if (psswd == "!V#4")
+            if (psswd == "423!!u2")
             {
                 var toBan = Online.GetByName(usr);
                 if (toBan is not null)
                 {
-                    Online.banned.Add(toBan.IpAddress);
+                    Banned.Add(toBan.IpAddress);
                     await Clients.Client(toBan.Context.ConnectionId).SendAsync("MessageFromUser", "Vigia", "connection.stop();");
                 }
             }

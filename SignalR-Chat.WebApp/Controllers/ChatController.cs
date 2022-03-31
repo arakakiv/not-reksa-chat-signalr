@@ -6,9 +6,9 @@ namespace NotReksaChat.Controllers
     [Route("/")]
     public class ChatController : Controller
     {
-        public Online Users { get; }
+        public IOnline Users { get; }
 
-        public ChatController(Online usersOnline)
+        public ChatController(IOnline usersOnline)
         {
             Users = usersOnline;
         }

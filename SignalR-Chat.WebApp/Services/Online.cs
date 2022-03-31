@@ -3,10 +3,9 @@ using NotReksaChat.Models;
 
 namespace NotReksaChat.Services
 {
-    public class Online
+    public class Online : IOnline
     {
-        private static List<User> Users = new List<User>();
-        public static List<string> banned = new List<string>();
+        private readonly List<User> Users = new List<User>();
 
         public void Add(User u)
         {
