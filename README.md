@@ -10,4 +10,4 @@ The app also have flood prevention and it does not allow users with the same nam
 ![](/more/tema-claro-demonstracao.png)
 
 ### Dark Theme
-![](/more/tema-escuro-demonstracao.png)
+<img src="/more/tema-escuro-demonstracao.png">
