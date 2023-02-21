@@ -11,5 +11,5 @@ The app also have flood prevention and it does not allow users with the same nam
 
 ### Dark Theme
 <h1>
-<img src="/more/tema-escuro-demonstracao.png">
+<img src="/more/tema-escuro-demonstracao.png" width="1000" height="1000">
 </h1>
