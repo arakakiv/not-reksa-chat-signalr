@@ -11,13 +11,7 @@ namespace NotReksaChat.Models
             Text = GeneralFunctions.RemoveWhiteSpaces(msg);
         }
 
-        public bool IsValid()
-        {
-            if (!GeneralFunctions.ContainsScript(Text))
-                if (GeneralFunctions.RemoveWhiteSpaces(Text).Length <= 300)
-                    return true;
-            
-            return false;
-        }
+        public bool IsValid() =>
+            !GeneralFunctions.ContainsScript(Text) && GeneralFunctions.RemoveWhiteSpaces(Text).Length <= 300;
     }
 }

@@ -6,17 +6,16 @@ namespace NotReksaChat.Controllers
     [Route("/")]
     public class ChatController : Controller
     {
-        public IOnline Users { get; }
-
+        private readonly IOnline _users;
         public ChatController(IOnline usersOnline)
         {
-            Users = usersOnline;
+            _users = usersOnline;
         }
 
         [Route("")]
         public IActionResult Index()
         {
-            ViewBag.Online = Users.GetAll();
+            ViewBag.Online = _users.GetAll();
             return View();
         }
     }

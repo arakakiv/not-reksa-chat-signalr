@@ -2,22 +2,16 @@ namespace NotReksaChat.Models
 {
     public class GeneralFunctions
     {
-        internal static bool ContainsScript(string what)
-        {
-            if (what.Contains("</") || (what.Contains("<") && what.Contains(">")))
-                return true;
-            
-            return false;
-        }
+        internal static bool ContainsScript(string str) =>
+            str.Contains("</") || (str.Contains("<") && str.Contains(">"));
 
-        internal static string RemoveWhiteSpaces(string what)
+        internal static string RemoveWhiteSpaces(string str)
         {
-            what = what.Trim();
-            
-            while(what.Contains("  "))
-                what = what.Replace("  ", " ");
+            str = str.Trim();
+            while(str.Contains("  "))
+                str = str.Replace("  ", " ");
 
-            return what;
+            return str;
         }
     }
 }

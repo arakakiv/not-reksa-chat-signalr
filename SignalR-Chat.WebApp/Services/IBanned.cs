@@ -6,7 +6,6 @@ namespace NotReksaChat.Services
     public interface IBanned
     {
         public void Add(string ip);
-
         public string Get(string ip);
     }
 }

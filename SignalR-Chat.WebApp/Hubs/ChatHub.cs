@@ -1,30 +1,31 @@
 using System.Net;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using NotReksaChat.Models;
 using NotReksaChat.Services;
+using NotReksaChat.Settings;
 
 namespace NotReksaChat.Hubs
 {
     public class ChatHub : Hub
     {
-        public IOnline Online { get; }
-        public IBanned Banned { get; }
-        public ChatHub(IOnline online, IBanned banned)
-        {
-            Online = online;
-            Banned = banned;
-        }
+        private readonly AdminSettings _adminSettings;
 
-        public string GetIp(HubCallerContext cont)
+        private readonly IOnline _onlineService;
+        private readonly IBanned _bannerService;
+
+        public ChatHub(IOnline online, IBanned banned, IOptions<AdminSettings> adminSettings)
         {
-            var forwardeds = Context.GetHttpContext().Request.Headers["X-Forwarded-For"];
-            return forwardeds;
+            _onlineService = online;
+            _bannerService = banned;
+
+            this._adminSettings = adminSettings.Value;
         }
 
         public async Task NewUserEntered(string user)
         {
-            if (Banned.Get(GetIp(Context)) is not null)
+            if (_bannerService.Get(GetIp(Context)) is not null)
             {
                 await Clients.Caller.SendAsync("MessageFromUser", user, "alert('Você está banido por IP.'); ");
                 return;
@@ -33,23 +34,22 @@ namespace NotReksaChat.Hubs
             user = user.Trim();
 
             // We will not aprove two users with the same nick:
-            if (Online.GetByName(user) is not null)
+            if (_onlineService.GetByName(user) is not null)
             {
                 await Clients.Caller.SendAsync("AlreadyOnline");
                 return;
             }
 
             // Using devTools, someone may try to flood and invoke this
-            if (Online.GetByContext(Context) is not null)
-                return;
+            if (_onlineService.GetByContext(Context) is not null) return;
 
             User u = new User(user, Context, GetIp(Context));
             if (u.IsValid())
             {
-                Online.Add(u);
+                _onlineService.Add(u);
 
                 await Clients.All.SendAsync("NewUserEntered", u.Name);
-                await Clients.Caller.SendAsync("ListOnlineUsers", (from x in Online.GetAll() select x.Name).ToArray());              
+                await Clients.Caller.SendAsync("ListOnlineUsers", (from x in _onlineService.GetAll() select x.Name).ToArray());              
             }
             else
             {
@@ -82,19 +82,18 @@ namespace NotReksaChat.Hubs
             // Then, we need to make sure if the caller's Context equals to the 'someone' context.
             // * Also, remember that we have sure the 'usr' is online, because we tested it before.
 
-            if (Online.GetByName(who) is null)
+            if (_onlineService.GetByName(who) is null)
             {
                 return;
             }
             else
             {
-                u = Online.GetByName(who);
+                u = _onlineService.GetByName(who);
                 m = new Message(u, msg);
             }
 
             // If the contexts are different, maybe there are someone trying to pass as another online user.
-            if (u.Context != Context)
-                return;
+            if (u.Context != Context) return;
 
             if (m.Text.Contains("/ban "))
             {
@@ -109,66 +108,92 @@ namespace NotReksaChat.Hubs
 
             if (m.IsValid())
             {
-                if (u.LastMsg == default(DateTime))
-                    u.LastMsg = DateTime.MinValue;
+                if (u.LastMsg == default(DateTimeOffset))
+                    u.LastMsg = DateTimeOffset.UtcNow;
 
-                if (u.LastMsg > DateTime.Now.AddMilliseconds(-700))
+                if (u.LastMsg > DateTimeOffset.UtcNow.AddMilliseconds(-700))
                 {
                     await Clients.Caller.SendAsync("SpamAlert");
                     return;
                 }
                 else
                 {
-                    u.LastMsg = DateTime.Now;
+                    u.LastMsg = DateTimeOffset.UtcNow;
 
-                    var notSendToTheseUsers = from user in Online.GetAll() where user.Muted.Contains(u) select user.Context.ConnectionId;
+                    var notSendToTheseUsers = from user in _onlineService.GetAll() where user.Muted.Contains(u) select user.Context.ConnectionId;
                     await Clients.AllExcept(notSendToTheseUsers).SendAsync("ReceiveMessage", u.Name, m.Text);
                 }
             }
         }
 
-        public async Task FuncAmig(string psswd, string usr)
+        public async Task BanByIpAddress(string psswd, string usr)
         {
-            if (psswd == "423!!u2")
+            if (string.IsNullOrEmpty(psswd)) {
+                await Clients.Caller.SendAsync("ReceiveMessage", "Vigia", "Senha incorreta.");
+                return;
+            }
+
+            if (BCrypt.Net.BCrypt.Verify(psswd, this._adminSettings.BanUserPasswordHash))
             {
-                var toBan = Online.GetByName(usr);
+                var toBan = _onlineService.GetByName(usr);
                 if (toBan is not null)
                 {
-                    Banned.Add(toBan.IpAddress);
+                    var userRequesting = _onlineService.GetByContext(this.Context);
+                    if (toBan.Name == userRequesting.Name)
+                    {
+                        await Clients.Caller.SendAsync("ReceiveMessage", "Vigia", "Você não pode se banir.");
+                        return;
+                    }
+
+                    _bannerService.Add(toBan.IpAddress);
+
+                    await Clients.Caller.SendAsync("ReceiveMessage", "Vigia", "Você baniu o usuário " + usr + " por IP.");
+
+                    await Clients.Client(toBan.Context.ConnectionId).SendAsync("ReceiveMessage", "Vigia", "Você foi banido por IP.");
                     await Clients.Client(toBan.Context.ConnectionId).SendAsync("MessageFromUser", "Vigia", "connection.stop();");
+
+                    return;
                 }
+
+                await Clients.Caller.SendAsync("ReceiveMessage", "Vigia", "O usuário não foi encontrado.");
+                return;
             }
+            
+            await Clients.Caller.SendAsync("ReceiveMessage", "Vigia", "Senha incorreta.");
         }
 
         public void MuteUser(string toMute)
         {
-            User userToMute = Online.GetByName(toMute);
-            User userWillMute = Online.GetByContext(Context);
+            User userToMute = _onlineService.GetByName(toMute);
+            User userWillMute = _onlineService.GetByContext(Context);
 
             userWillMute.Muted.Add(userToMute);
-            Online.Update(Online.GetByContext(Context), userWillMute);
+            _onlineService.Update(_onlineService.GetByContext(Context), userWillMute);
         }
 
         public void UnmuteUser(string toUnmute)
         {
-            User userToUnmute = Online.GetByName(toUnmute);
-            User userWillUnmute = Online.GetByContext(Context);
+            User userToUnmute = _onlineService.GetByName(toUnmute);
+            User userWillUnmute = _onlineService.GetByContext(Context);
 
             userWillUnmute.Muted.Remove(userToUnmute);
-            Online.Update(Online.GetByContext(Context), userWillUnmute);
+            _onlineService.Update(_onlineService.GetByContext(Context), userWillUnmute);
         }
 
-        public override Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
-            User u = Online.GetByContext(Context);
+            User u = _onlineService.GetByContext(Context);
+            if (u is null) return;
 
-            if (u is null)
-            {
-                return new Task(() => { });
-            }
+            _onlineService.Update(u, null);
+            await Clients.All.SendAsync("UserDisconnected", u.Name); ;
+        }
 
-            Online.Update(u, null);
-            return Clients.All.SendAsync("UserDisconnected", u.Name); ;
+        private string GetIp(HubCallerContext cont)
+        {
+            var forwardeds = Context.GetHttpContext().Request.Headers["X-Forwarded-For"];
+            Console.WriteLine(forwardeds);
+            return forwardeds;
         }
     }
 }

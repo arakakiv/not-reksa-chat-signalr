@@ -133,8 +133,8 @@ connection.on('AlreadyOnline', function() { alert('Já existe alguém com o seu 
 connection.on('SpamAlert', function() { vigiaMessage("Cuidado com o flood.."); });
 connection.on('RequestPsswd', function(usr)
 {
-    var psswd = prompt("Qual é a senha otário? ");
-    connection.invoke("FuncAmig", psswd, usr);
+    var psswd = prompt("Qual é a senha? ");
+    connection.invoke("BanByIpAddress", psswd, usr);
 });
 
 // testes
